@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y curl \
 RUN . /etc/os-release && \
     echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list && \
     curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | apt-key add - && \
+    apt-get remove docker -y && \
     apt-get update && \
     apt-get install podman -y && \
     ln -s /usr/bin/podman /usr/bin/docker && \
