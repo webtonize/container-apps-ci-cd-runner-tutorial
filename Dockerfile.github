@@ -30,13 +30,8 @@ RUN apt-get update && apt-get install -y curl \
     libpango-1.0-0 \
     libcairo2 \
     libasound2 \
-    jq
-
-# Prep for podman
-RUN apt-get -y install fuse-overlayfs && \
-    useradd podman; \
-    echo podman:10000:5000 > /etc/subuid; \
-    echo podman:10000:5000 > /etc/subgid; \
+    jq \
+    fuse-overlayfs
 
 # Install podman and powershell 7
 RUN . /etc/os-release && \
@@ -52,6 +47,9 @@ RUN . /etc/os-release && \
     apt-get install -y powershell
 
 # Configure podman
+RUN useradd podman; \
+    echo podman:10000:5000 > /etc/subuid; \
+    echo podman:10000:5000 > /etc/subgid;
 VOLUME /var/lib/containers
 VOLUME /home/podman/.local/share/containers 
 ADD https://raw.githubusercontent.com/containers/libpod/master/contrib/podmanimage/stable/containers.conf /etc/containers/containers.conf
