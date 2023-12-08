@@ -30,39 +30,13 @@ RUN apt-get update && apt-get install -y curl \
     libpango-1.0-0 \
     libcairo2 \
     libasound2 \
-    jq \
-    fuse-overlayfs \
-    containers-storage
+    jq
 
-# Install podman and powershell 7
-RUN . /etc/os-release && \
-    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list && \
-    curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | apt-key add - && \
-    rm -f /usr/bin/docker && \
-    apt-get update && \
-    apt-get install podman -y && \
-    ln -s /usr/bin/podman /usr/bin/docker && \
-    wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb && \
+# Install powershell 7
+RUN wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
     apt-get update && \
     apt-get install -y powershell
-
-# Configure podman
-RUN useradd podman; \
-    echo podman:10000:5000 > /etc/subuid; \
-    echo podman:10000:5000 > /etc/subgid;
-VOLUME /var/lib/containers
-VOLUME /home/podman/.local/share/containers 
-ADD https://raw.githubusercontent.com/containers/libpod/master/contrib/podmanimage/stable/containers.conf /etc/containers/containers.conf
-ADD https://raw.githubusercontent.com/containers/libpod/master/contrib/podmanimage/stable/podman-containers.conf /home/podman/.config/containers/containers.conf
-
-RUN chown podman:podman -R /home/podman
-# chmod containers.conf and adjust storage.conf to enable Fuse storage.
-RUN cp /usr/share/containers/storage.conf /etc/containers/storage.conf
-RUN chmod 644 /etc/containers/containers.conf; sed -i -e 's|^#mount_program|mount_program|g' -e '/additionalimage.*/a "/var/lib/shared",' -e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' /etc/containers/storage.conf
-RUN mkdir -p /var/lib/shared/overlay-images /var/lib/shared/overlay-layers /var/lib/shared/vfs-images /var/lib/shared/vfs-layers; touch /var/lib/shared/overlay-images/images.lock; touch /var/lib/shared/overlay-layers/layers.lock; touch /var/lib/shared/vfs-images/images.lock; touch /var/lib/shared/vfs-layers/layers.lock
-
-ENV _CONTAINERS_USERNS_CONFIGURED=""
 
 # Configure GitHub actions runner agent
 COPY github-actions-runner/entrypoint.sh ./entrypoint.sh
